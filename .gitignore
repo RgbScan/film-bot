@@ -1,0 +1,23 @@
+# Исключить папки
+/__pycache__
+/node_modules
+/venv
+/build
+/dist
+/database
+/handlers
+/keyboards
+/states
+
+
+# Исключить файл
+env
+config.py
+loader.py
+main.py
+test.py
+
+# Исключить служебные файлы
+*.log
+*.tmp
+.DS_Store
