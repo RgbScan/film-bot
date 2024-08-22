@@ -48,7 +48,7 @@ def search_by_name(message):
     bot.send_message(
         message.from_user.id,
         "Введите название фильма",
-        reply_markup=ReplyKeyboardRemove
+        reply_markup=ReplyKeyboardRemove()
     )
     bot.set_state(message.from_user.id, MyState.state_name, message.chat.id)
 
@@ -87,10 +87,12 @@ def sort_max_to_min(message):
         date_r=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         request_value=f"Поиск фильмов по рейтингу: {message.text}"
     )
-    bot.send_message(
-        message.from_user.id,
-        movie_by_rating.sort_rating(message.text),
-    )
+    movie_list = movie_by_rating.sort_rating(message.text)
+    for movie in movie_list:
+        bot.send_message(
+            message.from_user.id,
+            movie
+        )
     bot.delete_state(message.from_user.id, message.chat.id)
 
 

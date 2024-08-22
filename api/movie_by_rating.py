@@ -1,12 +1,18 @@
 import requests
 from api.kinopoisk import base_url, headers
+from pprint import pprint
 
 
-def sort_rating(num_sort: list):
+def sort_rating(num_sort: str):
+    num_sort = num_sort.split(",")
+
+    for i, v in enumerate(num_sort):
+        num_sort[i] = int(v)
+
     search_name_url = "/v1.4/movie"
     search_params = {
         "page": 1,
-        "limit": 12,
+        "limit": 20,
         "selectFields": [
             "name",
             "shortDescription",
@@ -24,20 +30,22 @@ def sort_rating(num_sort: list):
     }
 
     response = requests.get(base_url + search_name_url, headers=headers, params=search_params)
-    res = response.json()['docs'][0]
+    print(response.json())
+    res = response.json()['docs']
+    print(response.json())
+    print_res = []
     if len(res) == 0:
         return "К сожалению не удалось выполнить сортировку"
     else:
-        genres = []
-        for x in res['genres']:
-            genres.append(x['name'])
-        return (
-            f"Название: {res['name']}\n"
-            f"Описание: {res['shortDescription']}\n"
-            f"Рейтинг кинопоиска: {res['rating']['kp']}\n"
-            f"Год производства: {res['year']}\n"
-            f"Жанр: {genres}\n"
-            f"Возрастной рейтинг: {res['ageRating']}+\n"
-            f"Постер: {res['poster']}"
-        )
-
+        for i in res:
+            print_res.append([
+                f"Название: {i['name']}\n"
+                f"Описание: {i['shortDescription']}\n"
+                f"Рейтинг кинопоиска: {i['rating']['kp']}\n"
+                f"Год производства: {i['year']}\n"
+                f"Жанр: {i['genres']}\n"
+                f"Возрастной рейтинг: {i['ageRating']}+\n"
+                f"Постер: {i['poster']}"
+                ]
+            )
+    return print_res
