@@ -1,13 +1,14 @@
 import requests
-from kinopoisk import base_url, headers
-from pprint import pprint
+from api.kinopoisk import base_url, headers
+
 
 search_name_url = "/v1.4/movie"
 search_params = {
     "page": 1,
-    "limit": 5,
+    "limit": 1,
     "selectFields": [
         "name",
+        "description",
         "rating",
         "year",
         "genres",
@@ -39,5 +40,9 @@ sort_type("1")
 
 response = requests.get(base_url + search_name_url, headers=headers, params=search_params)
 res = response.json()
-pprint(res)
+print(res)
+# for dict_k in res['docs']:
+#     for j, v in dict_k.items():
+#         print(j, v)
+
 
