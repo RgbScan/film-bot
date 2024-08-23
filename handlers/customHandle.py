@@ -1,10 +1,11 @@
+import time
 from datetime import datetime
 
 from peewee import IntegrityError
 from telebot.custom_filters import StateFilter
+from telebot.types import InlineKeyboardMarkup, ReplyKeyboardRemove
 
-
-from keyboards.key import *
+from keyboards.key import gen_budget, gen_start
 from config import bot
 from database.models import RequestStorage, Users
 from states.mainState import MyState
@@ -41,16 +42,25 @@ def handle_start(message):
         )
 
 
-# Команда для поиска фильма по названию
-@bot.message_handler(commands=["start, button_name"])
-@bot.message_handler(func=lambda message: message.text == "Найти фильм по названию")
-def search_by_name(message):
+def initiate_name_search(message):
+    bot.delete_state(message.from_user.id, message.chat.id)
     bot.send_message(
         message.from_user.id,
         "Введите название фильма",
         reply_markup=ReplyKeyboardRemove()
     )
     bot.set_state(message.from_user.id, MyState.state_name, message.chat.id)
+    print(message.from_user.id, message.chat.id)
+
+# Команда для поиска фильма по названию
+@bot.message_handler(commands=["button_name"])
+def handle_name_command(message):
+    initiate_name_search(message)
+
+
+@bot.message_handler(func=lambda message: message.text == "Найти фильм по названию")
+def handle_name_text(message):
+    initiate_name_search(message)
 
 
 @bot.message_handler(state=MyState.state_name)
@@ -68,16 +78,24 @@ def push_res(message):
     bot.delete_state(message.from_user.id, message.chat.id)
 
 
-@bot.message_handler(commands=["button_rating"])
-@bot.message_handler(func=lambda message: message.text == "Найти фильм по рейтингу")
-def search_by_rating(message):
+def initiate_rating_search(message):
     bot.send_message(
         message.from_user.id,
-        "Введите рейтинг фильмов для поиска."
+        "Введите значение для поиска."
         "Вы можете ввести одно значение, например: 5.5 или 8."
         "или можете ввести сразу несколько значений через запятую, например: 5, 6.5, 8, 7",
     )
     bot.set_state(message.from_user.id, MyState.state_rating, message.chat.id)
+
+
+@bot.message_handler(commands=["button_rating"])
+def handle_rating_command(message):
+    initiate_rating_search(message)
+
+
+@bot.message_handler(func=lambda message: message.text == "Найти фильм по рейтингу")
+def handle_rating_text(message):
+    initiate_rating_search(message)
 
 
 @bot.message_handler(state=MyState.state_rating)
@@ -88,34 +106,76 @@ def sort_max_to_min(message):
         request_value=f"Поиск фильмов по рейтингу: {message.text}"
     )
     movie_list = movie_by_rating.sort_rating(message.text)
-    for movie in movie_list:
+    if movie_list == 0:
         bot.send_message(
             message.from_user.id,
-            movie
+            "К сожалению не удалось найти фильмы с таким рейтингом"
         )
+    else:
+        for movie in movie_list:
+            bot.send_message(
+                message.from_user.id,
+                movie
+            )
     bot.delete_state(message.from_user.id, message.chat.id)
 
 
-# @bot.message_handler(commands=["button_budget"])
-# def search_by_name(message):
-#     bot.set_state(message.from_user.id, MyState.state_one)
-#     bot.send_message(
-#         message.from_user.id,
-#         "Введите название фильма",
-#     )
-#
-#
-# @bot.message_handler(commands=["button_history"])
-# def search_by_name(message):
-#     bot.set_state(message.from_user.id, MyState.state_one)
-#     bot.send_message(
-#         message.from_user.id,
-#         "Введите название фильма",
-#     )
+def initiate_budget_search(message):
+    bot.delete_state(message.from_user.id, message.chat.id)
+    bot.send_message(
+        message.from_user.id,
+        "Выберите бюджет фильмов для отображения",
+        reply_markup=gen_budget(),
+    )
+    bot.set_state(message.from_user.id, MyState.state_budget, message.chat.id)
 
 
+@bot.message_handler(commands=["button_budget"])
+def handle_budget_command(message):
+    initiate_budget_search(message)
 
 
+@bot.message_handler(func=lambda message: message.text == "Найти фильм по бюджету")
+def handle_budget_text(message):
+    initiate_budget_search(message)
 
 
+@bot.callback_query_handler(func=lambda callback_query: callback_query.data in ["low_budget_sort", "high_budget_sort"])
+def sort_low(callback_query):
+    # Удаляем клавиатуру
+    bot.edit_message_reply_markup(
+        callback_query.from_user.id, callback_query.message.message_id
+    )
 
+    request_value = "Поиск фильмов по низкому бюджету" if callback_query.data == "low_budget_sort" else "Поиск фильмов по высокому бюджету"
+
+    RequestStorage.create(
+        user_id=callback_query.from_user.id,
+        date_r=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        request_value=request_value
+    )
+    movie_list = movie_by_budget.movie_budget(callback_query.data)
+    for movie in movie_list:
+        bot.send_message(
+            callback_query.from_user.id,
+            movie,
+        )
+    bot.delete_state(callback_query.from_user.id, callback_query.message.chat.id)
+
+
+@bot.message_handler(commands=["button_history"])
+def search_by_history(message):
+    query = (RequestStorage
+             .select(RequestStorage.date_r, RequestStorage.request_value)
+             .where(RequestStorage.user_id == message.chat.id)
+             .order_by(RequestStorage.date_r.desc())
+             .limit(5)
+             )
+    if query.exists():
+        history = "\n".join([f"{record.date_r}: {record.request_value}" for record in query])
+    else:
+        history = "История запросов пуста."
+    bot.send_message(
+        message.from_user.id,
+        history
+    )

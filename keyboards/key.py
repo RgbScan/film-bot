@@ -20,3 +20,10 @@ def gen_start():
     return keyboard
 
 
+def gen_budget():
+    button_low = InlineKeyboardButton(text="С низким бюджетом", callback_data="low_budget_sort")
+    button_high = InlineKeyboardButton(text="С высоким бюджетом", callback_data="high_budget_sort")
+
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(button_low, button_high)
+    return keyboard

@@ -7,12 +7,12 @@ def sort_rating(num_sort: str):
     num_sort = num_sort.split(",")
 
     for i, v in enumerate(num_sort):
-        num_sort[i] = int(v)
+        num_sort[i] = float(v)
 
     search_name_url = "/v1.4/movie"
     search_params = {
         "page": 1,
-        "limit": 20,
+        "limit": 5,
         "selectFields": [
             "name",
             "shortDescription",
@@ -30,15 +30,13 @@ def sort_rating(num_sort: str):
     }
 
     response = requests.get(base_url + search_name_url, headers=headers, params=search_params)
-    print(response.json())
     res = response.json()['docs']
-    print(response.json())
     print_res = []
     if len(res) == 0:
-        return "К сожалению не удалось выполнить сортировку"
+        return 0
     else:
         for i in res:
-            print_res.append([
+            print_res.append(
                 f"Название: {i['name']}\n"
                 f"Описание: {i['shortDescription']}\n"
                 f"Рейтинг кинопоиска: {i['rating']['kp']}\n"
@@ -46,6 +44,5 @@ def sort_rating(num_sort: str):
                 f"Жанр: {i['genres']}\n"
                 f"Возрастной рейтинг: {i['ageRating']}+\n"
                 f"Постер: {i['poster']}"
-                ]
             )
     return print_res
