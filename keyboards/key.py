@@ -1,5 +1,6 @@
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from telegram_bot_pagination import InlineKeyboardPaginator
 
 
 def gen_start():
@@ -27,3 +28,16 @@ def gen_budget():
     keyboard = InlineKeyboardMarkup()
     keyboard.add(button_low, button_high)
     return keyboard
+
+
+    paginator = InlineKeyboardPaginator(
+        page_count,
+        current_page=page,
+        data_pattern='page#{page}'
+    )
+
+    bot.send_message(
+        chat_id,
+        text,
+        reply_markup=paginator.markup,
+    )

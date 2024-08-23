@@ -29,7 +29,6 @@ def movie_budget(sort_num):
 
     response = requests.get(base_url + search_name_url, headers=headers, params=search_params)
     res = response.json()['docs']
-
     print_res = []
     for i in res:
         genres = []
@@ -39,14 +38,18 @@ def movie_budget(sort_num):
         else:
             'Не указан'
         print_res.append(
-            f"Название: {i.get('name', 'Не указано')}\n"
+            f"Название: {i.get('name') or 'Не указано'}\n"
             f"Описание: {i.get('shortDescription') or 'Не указано'}\n"
             f"Рейтинг imdb: {i.get('rating', {}).get('imdb', 'Не указан')}\n"
-            f"Год производства: {i.get('year', 'Не указан')}\n"
+            f"Год производства: {i.get('year') or 'Не указано'}\n"
             f"Жанр: {', '.join(genres)}\n"
-            f"Возрастной рейтинг: {i.get('ageRating', 'Не указан') if i.get('ageRating') is not None else 'Не указан'}\n"
+            f"Возрастной рейтинг:"
+            f"Возрастной рейтинг: {str(i.get('ageRating')) + '+' if i.get('ageRating') else 'Не указан'}\n"
             f"Постер: {i.get('poster', {}).get('url', 'Нет постера')}\n"
-            f"Бюджет: {i.get('budget', {}).get('value', 'Не указан')}, Валюта:{i.get('budget', {}).get('currency', '')}"
+            f"Бюджет:"
+            f" {i.get('budget', {}).get('value', 'Не указан')}, Валюта:{i.get('budget', {}).get('currency', '')}"
         )
+
+
     return print_res
 

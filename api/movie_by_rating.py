@@ -1,6 +1,5 @@
 import requests
 from api.kinopoisk import base_url, headers
-from pprint import pprint
 
 
 def sort_rating(num_sort: str):
@@ -36,13 +35,20 @@ def sort_rating(num_sort: str):
         return 0
     else:
         for i in res:
+            genres = []
+            if i.get('genres', '') != '':
+                for gen in i.get('genres', ''):
+                    genres.append(gen['name'])
+            else:
+                'Не указан'
             print_res.append(
-                f"Название: {i['name']}\n"
-                f"Описание: {i['shortDescription']}\n"
-                f"Рейтинг кинопоиска: {i['rating']['kp']}\n"
-                f"Год производства: {i['year']}\n"
-                f"Жанр: {i['genres']}\n"
-                f"Возрастной рейтинг: {i['ageRating']}+\n"
-                f"Постер: {i['poster']}"
+                f"Название: {i.get('name') or 'Не указано'}\n"
+                f"Описание: {i.get('shortDescription') or 'Не указано'}\n"
+                f"Рейтинг imdb: {i['rating'].get('imdb') or 'Не указан'}\n"
+                f"Год производства: {i.get('year') or 'Не указан'}\n"
+                f"Жанр: {', '.join(genres)}\n"
+                
+                f"Возрастной рейтинг: {str(i.get('ageRating')) + '+' if i.get('ageRating') else 'Не указан'}\n"
+                f"Постер: {i['poster'].get('url') or 'Не указано'}"
             )
     return print_res

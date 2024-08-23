@@ -19,11 +19,11 @@ def search_film(name_movie):
         for x in res['genres']:
             genres.append(x['name'])
         return(
-            f"Название: {res['name']}\n"
-            f"Описание: {res['shortDescription']}\n"
-            f"Рейтинг кинопоиска: {res['rating']['kp']}\n"
-            f"Год производства: {res['year']}\n"
-            f"Жанр: {genres}\n"
-            f"Возрастной рейтинг: {res['ageRating']}+\n"
-            f"Постер: {res['poster']}"
+            f"Название: {res.get('name') or 'Не указано'}\n"
+            f"Описание: {res.get('shortDescription') or 'Не указано'}\n"
+            f"Рейтинг imdb: {res['rating'].get('imdb') or 'Не указан'}\n"
+            f"Год производства: {res.get('year') or 'Не указан'}\n"
+            f"Жанр: {', '.join(genres)}\n"
+            f"Возрастной рейтинг: {str(res.get('ageRating')) + '+' if res.get('ageRating') else 'Не указан'}\n"
+            f"Постер: {res['poster'].get('url', '')}"
         )
